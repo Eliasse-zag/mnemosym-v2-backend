@@ -5,7 +5,6 @@ require('../models/connection');
 const Book = require('../models/books');
 
 
-let idBook = req.body.idBook
 // Ajouter un livre dans la collection Book, lorsque celui ci intègre la bibliothèque.
 router.post('/newBook', (req, res) => {
     // Récupération du contenu du livre de l'API Gutenberg 
@@ -15,9 +14,6 @@ fetch(`https://www.gutenberg.org/cache/epub/${idBook}/pg${idBook}-images.html`)
 .then(data => {
     console.log(data)
 })
-
-
-
 
   // Si le livre existe, ne pas l'ajouter
   Book.findOne({title: req.body.title}).then((data) => {
