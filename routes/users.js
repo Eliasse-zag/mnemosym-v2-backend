@@ -56,7 +56,16 @@ router.post('/signin', (req, res) => {
   });
 });
 
+// ----------- PROFIL UTILISATEUR ----------- //
+router.get('/:token', (req, res) => {
+  User.findOne({ token: req.params.token }).then(data => {
+    if (data) {
+      res.json({ result: true, user: { username: data.username } });
+    } else {
+      res.json({ result: false, error: 'User not found' });
+    }
+  });
+});
 
 
-
-module.exports = router;
+module.exports = router
