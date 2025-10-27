@@ -1,0 +1,15 @@
+const mongoose = require('mongoose');
+
+const bookSchema = mongoose.Schema({
+    title: String, 
+    author: String,
+    year: String,
+    addAt: Date,
+    synopsis: String,
+    content: String,
+    comments: [{type: mongoose.Schema.Types.ObjectId, ref:'comments'},]
+});
+
+const Book = mongoose.model('books', bookSchema);
+
+module.exports = Book;
