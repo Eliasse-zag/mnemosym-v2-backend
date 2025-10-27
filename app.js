@@ -1,3 +1,5 @@
+require('dotenv').config();
+require('./models/connection');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -8,6 +10,7 @@ var usersRouter = require('./routes/users');
 var booksRouter = require('./routes/books')
 
 var app = express();
+
 const cors = require('cors');
 app.use(cors());
 app.use(logger('dev'));
