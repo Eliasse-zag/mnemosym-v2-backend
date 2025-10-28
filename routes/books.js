@@ -81,8 +81,14 @@ router.post('/addBookByTitle', async(req, res) => {
         res.json({result: false, error: 'Book already in database'})
     }
 })
-
 })
+
+// Récupérer tous les livres de la collection Book  
+router.get('/allBooks', (req, res) => {
+    Book.find().then((books) => {
+        res.json({result: true, books})
+    });
+});
 
 
 module.exports = router;
