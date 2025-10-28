@@ -34,6 +34,21 @@ router.post('/newBook/:gutendexId', async(req, res) => {
   });
 });
 // Créer une route pour récupérer tous les livres de la base de données
-router.get('/allBooks', (req, res) => {})
+router.get('/allBooks', (req, res) => {
+    Book.find().then((books) => {
+        res.json({result: true, books})       
+    })
+})
+
+// Créer une route pour récupérer un livre par son ID
+router.get('/book/:id', (req, res) => {
+    const bookId = req.params.id;
+    Book.findById(bookId).then((book) => {
+        if (book) {
+            res.json({result: true, book});
+        } else {
+            res.json({result: false, error: 'Book not found'});
+        }
+    }
 
 module.exports = router;
