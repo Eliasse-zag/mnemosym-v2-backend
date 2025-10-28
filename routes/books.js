@@ -33,5 +33,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
     }
   });
 });
+// Créer une route pour récupérer tous les livres de la base de données
+router.get('/allBooks', (req, res) => {})
 
 module.exports = router;
