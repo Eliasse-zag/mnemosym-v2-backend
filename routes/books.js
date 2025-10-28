@@ -91,4 +91,16 @@ router.get('/allBooks', (req, res) => {
 });
 
 
+// Récupérer un livre spécifique par son ID MongoDB
+router.get('/:id', (req, res) => {
+    const bookId = req.params.id;
+    Book.findById(bookId).then((book) => {
+        if (book) {
+            res.json({result: true, book});
+        } else {
+            res.json({result: false, error: 'Book not found'});
+        }
+    });   
+})  
+
 module.exports = router;
