@@ -4,23 +4,23 @@ var router = express.Router();
 const Book = require('../models/books');
 const fetch = require('node-fetch');
 
-// Ajouter un livre dans la collection Book, lorsque celui ci intègre la bibliothèque.
+// Ajouter un livre dans la collection Book via son ID Gutendex 
+// Fonctionnalité réservée à l'admin
 router.post('/newBook/:gutendexId', async(req, res) => {
 
     const gutendexId = req.params.gutendexId
     const response = await fetch(`https://gutendex.com/books/${gutendexId}`);
     const bookData = await response.json();
-    //console.log("bookData", bookData) 
-    //console.log("author", bookData.authors[0].name) // Voltaire 
-    //console.log("Content", bookData.formats['text/html']) // url du text à exploiter
+    //console.log("bookData", bookData) // Meta d'un livre 
+    //console.log("Content", bookData.formats['text/html']) // URL du texte à exploiter
 
-    // Récupération du texte 
-    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du text en HTML
+    // Récupération du texte à partir de l'URL
+    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du texte en HTML
     const textContent = await textUrl.text(); // conversion au format text 
 
-    // Trouver API avec les meta d'un livre 
-  Book.findOne({gutendexId: gutendexId}).then((data) => {
-    if (data === null ) { // Si le livre n'est pas dans la base de donnée : l'ajouter
+    // Rechercher si le livre est déjà dans la base de données
+    Book.findOne({gutendexId: gutendexId}).then((data) => {
+    if (data === null ) { // Si le livre n'est pas dans la base de données => l'ajouter
         const newBook = new Book({
             title: bookData.title, 
             author: bookData.authors[0].name,
@@ -28,7 +28,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
             content: textContent, 
         }); 
         newBook.save().then(data => res.json({result: true, data}))
-    } else { // Si le livre est dans la base de données : error
+    } else { // Si le livre est dans la base de données => error
         res.json({result: false, error: 'Book already in database'})
     }
   });
@@ -41,33 +41,32 @@ router.post('/addBookByTitle', async(req, res) => {
         return res.json({result: false, error: 'Title is required'});
     };
 
-    // https://gutendex.com/books?search=dickens%20great
+    //Exemple d'URL à exploiter : https://gutendex.com/books?search=dickens%20great
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
     const searchData = await response.json();
-    //console.log("searchData", searchData) // Plusieurs oeuvres possibles, par défaut prendre le 0
+    //console.log("searchData", searchData) // Plusieurs oeuvres peuvent être trouvées
 
     if (searchData.count === 0) {
         return res.json({result: false, error: 'No book found with this title'});
     }
-     const frenchResult = searchData.results.find(r => r.languages?.includes('fr'));
 
     // Vérification : il doit exister une version française
     // Gutendex fournit un champ "languages" (ex: ['en','fr'])
-      if (frenchResult === undefined) {
-          return res.json({ result: false, error: 'No French version available for this book' });
-      } 
+    const frenchResult = searchData.results.find(r => r.languages?.includes('fr'));
+    if (frenchResult === undefined) {
+        return res.json({ result: false, error: 'No French version available for this book' });
+    } 
 
-      const bookData = frenchResult;
-      //console.log("bookData", bookData) // Première oeuvre trouvée
+    const bookData = frenchResult;
+    //console.log("bookData", bookData) 
       
-
     // Récupération du texte
-    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.html.images`); // récupération du text en HTML
-    const textContent = await textUrl.text(); // conversion au format text
+    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.html.images`); // récupération du texte en HTML
+    const textContent = await textUrl.text(); // conversion au format texte
 
-    // Trouver API avec les meta d'un livre
+    // Rechercher si le livre est déjà dans la base de données
     Book.findOne({gutendexId: bookData.id}).then((data) => {
-        if (data === null) { // Si le livre n'est pas dans la base de donnée : l'ajouter
+        if (data === null) { // Si le livre n'est pas dans la base de données => l'ajouter
           const newBook = new Book({
                 gutendexId: bookData.id,
                 title: bookData.title, 
@@ -76,8 +75,7 @@ router.post('/addBookByTitle', async(req, res) => {
                 content: textContent
             })
             newBook.save().then(data => res.json({result: true, data}))
-            
-          } else { // Si le livre est dans la base de données : error
+        } else { // Si le livre est dans la base de données => error
         res.json({result: false, error: 'Book already in database'})
     }
 })
@@ -89,7 +87,6 @@ router.get('/allBooks', (req, res) => {
         res.json({result: true, books})
     });
 });
-
 
 // Récupérer un livre spécifique par son ID MongoDB
 router.get('/:id', (req, res) => {
