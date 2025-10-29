@@ -9,8 +9,8 @@ const User = require("../models/usersShemaModel");
 router.get("/:bookId", async (req, res) => {
   try {
     const comments = await Comment.find({ book: req.params.bookId })
-      .populate("author", "username") // récupère le username de l’auteur
-      .sort({ postedAt: -1 }); // du plus récent au plus ancien
+      .populate("author", "username")
+      .sort({ postedAt: -1 });
 
     res.json({ result: true, comments });
   } catch (error) {
@@ -20,67 +20,38 @@ router.get("/:bookId", async (req, res) => {
 });
 
 //publier un nouveau commentaire
-router.post("/:bookId", (req, res) => {
-  const { token, content } = req.body;
-  if (!token || !content)
-    return res.json({ result: false, error: "Missing fields" });
-  // On trouve l'utilisateur
-  User.findOne({ token }).then((user) => {
-    if (!user) return res.json({ result: false, error: "User not found" });
-    //On trouve le livre
-    Book.findById(req.params.bookId).then((book) => {
-      if (!book) return res.json({ result: false, error: "Book not found" });
+router.post("/:bookId", async (req, res) => {
+  try {
+    const { token, content } = req.body;
 
-      new Comment({
-        author: user._id,
-        content,
-        book: book._id,
-        postedAt: new Date(),
-      })
-        .save()
-        .then((comment) => {
-          book.comments.push(comment._id);
-          book.save();
-          res.json({ result: true, comment });
-        });
-    });
-  });
-});
-
-// Liker un commentaire
-router.put("/likeComment", (req, res) => {
-  const { token, commentId } = req.body;
-  if (!token || !commentId) {
-    return res.json({ result: false, error: "Missing token or comment ID" });
-  }
-  // On trouve l'utilisateur
-  User.findOne({ token }).then((user) => {
-    if (!user) {
-      return res.json({ result: false, error: "User not found" });
+    if (!token || !content) {
+      return res.json({ result: false, error: "Champs manquants." });
     }
-    // On trouve le commentaire
-    Comment.findById(commentId).then((comment) => {
-      if (!comment) {
-        return res.json({ result: false, error: "Comment not found" });
-      }
-      // Vérifie si l'utilisateur a déjà liké
-      const hasLiked = comment.isLike.includes(user._id);
 
-      if (hasLiked) {
-        comment.isLike = comment.isLike.filter((id) => !id.equals(user._id));
-      } else {
-        comment.isLike.push(user._id);
-      }
+    const user = await User.findOne({ token });
+    if (!user)
+      return res.json({ result: false, error: "Utilisateur non trouvé." });
 
-      comment.save().then((updated) => {
-        res.json({
-          result: true,
-          liked: !hasLiked,
-          totalLikes: updated.isLike.length,
-        });
-      });
+    const book = await Book.findById(req.params.bookId);
+    if (!book) return res.json({ result: false, error: "Livre introuvable." });
+
+    const newComment = new Comment({
+      author: user._id,
+      content,
+      book: book._id,
     });
-  });
+
+    const savedComment = await newComment.save();
+    const populatedComment = await savedComment.populate("author", "username");
+
+    book.comments.push(savedComment._id);
+    await book.save();
+
+    res.json({ result: true, comment: populatedComment });
+  } catch (error) {
+    console.error("Erreur ajout commentaire:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur." });
+  }
 });
 
 module.exports = router;
