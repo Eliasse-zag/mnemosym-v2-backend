@@ -44,7 +44,7 @@ router.post('/addBookByTitle', async(req, res) => {
     // https://gutendex.com/books?search=dickens%20great
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
     const searchData = await response.json();
-    //console.log("searchData", searchData) // Plusieurs oeuvres possibles, par défaut prendre le 0
+    //console.log("searchData", searchData) 
 
     if (searchData.count === 0) {
         return res.json({result: false, error: 'No book found with this title'});
@@ -58,12 +58,14 @@ router.post('/addBookByTitle', async(req, res) => {
       } 
 
       const bookData = frenchResult;
-      //console.log("bookData", bookData) // Première oeuvre trouvée
+      console.log("bookData", bookData) 
       
 
     // Récupération du texte
     const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.html.images`); // récupération du text en HTML
-    const textContent = await textUrl.text(); // conversion au format text
+    // Test avec format textPlain 
+    const textPlainUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.txt.utf-8`)
+    const textContent = await textPlainUrl.text(); // conversion au format text
 
     // Trouver API avec les meta d'un livre
     Book.findOne({gutendexId: bookData.id}).then((data) => {
