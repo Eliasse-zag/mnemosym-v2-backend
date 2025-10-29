@@ -5,7 +5,7 @@ const commentSchema = mongoose.Schema({
   content: String,
   postedAt: { type: Date, default: Date.now },
   book: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
-  isLike: [{ type: mongoose.Schema.Types.ObjectId, ref: "users" }],
+  isLike: [{ type: String, default: [] }],
 });
 
 const Comment = mongoose.model("comments", commentSchema);
