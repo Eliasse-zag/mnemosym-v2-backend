@@ -4,13 +4,8 @@ var sanitizeHTML = require('sanitize-html');
 const Book = require('../models/books');
 const fetch = require('node-fetch');
 
-<<<<<<< HEAD
 // Ajouter un livre dans la collection Book via son ID Gutendex 
 // Fonctionnalité réservée à l'admin
-=======
-
-// Ajouter un livre dans la collection Book, lorsque celui ci intègre la bibliothèque.
->>>>>>> backend
 router.post('/newBook/:gutendexId', async(req, res) => {
 
     const gutendexId = req.params.gutendexId
@@ -23,35 +18,9 @@ router.post('/newBook/:gutendexId', async(req, res) => {
     const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du texte en HTML
     const textContent = await textUrl.text(); // conversion au format text 
 
-<<<<<<< HEAD
     // Rechercher si le livre est déjà dans la base de données
     Book.findOne({gutendexId: gutendexId}).then((data) => {
     if (data === null ) { // Si le livre n'est pas dans la base de données => l'ajouter
-=======
-    // Nettoyage du HTML avant stockage dans la BDD
-    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
-    const cleanHtml = sanitizeHTML(cleanedRaw, {
-        allowedTags: [
-      "p", "h1", "h2", "h3", "h4", "h5",
-      "em", "strong", "blockquote",
-      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
-    ],
-    allowedAttributes: {
-      a: ["href", "name", "target"],
-      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
-    },
-
-    // Protocoles autorisés dans les liens
-    allowedSchemes: ["http", "https", "mailto"],
-
-    // Interdit tous les styles inline
-    allowedStyles: {},
-    });
-
-    // Trouver API avec les meta d'un livre 
-  Book.findOne({gutendexId: gutendexId}).then((data) => {
-    if (data === null ) { // Si le livre n'est pas dans la base de donnée : l'ajouter
->>>>>>> backend
         const newBook = new Book({
             title: bookData.title, 
             author: bookData.authors[0].name,
@@ -76,11 +45,7 @@ router.post('/addBookByTitle', async(req, res) => {
     //Exemple d'URL à exploiter : https://gutendex.com/books?search=dickens%20great
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
     const searchData = await response.json();
-<<<<<<< HEAD
     //console.log("searchData", searchData) // Plusieurs oeuvres peuvent être trouvées
-=======
-    //console.log("searchData", searchData) 
->>>>>>> backend
 
     if (searchData.count === 0) {
         return res.json({result: false, error: 'No book found with this title'});
@@ -93,47 +58,14 @@ router.post('/addBookByTitle', async(req, res) => {
         return res.json({ result: false, error: 'No French version available for this book' });
     } 
 
-<<<<<<< HEAD
     const bookData = frenchResult;
     //console.log("bookData", bookData) 
-=======
-      const bookData = frenchResult;
-      console.log("bookData", bookData) 
->>>>>>> backend
       
     // Récupération du texte
-<<<<<<< HEAD
     const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.html.images`); // récupération du texte en HTML
     const textContent = await textUrl.text(); // conversion au format texte
 
     // Rechercher si le livre est déjà dans la base de données
-=======
-    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.html.images`); // récupération du text en HTML
-    // Test avec format textPlain 
-    //const textPlainUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.txt.utf-8`)
-    const textContent = await textUrl.text(); // conversion au format text
-
-    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
-    const cleanHtml = sanitizeHTML(cleanedRaw, {
-        allowedTags: [
-      "p", "h1", "h2", "h3", "h4", "h5",
-      "em", "strong", "blockquote",
-      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
-    ],
-    allowedAttributes: {
-      a: ["href", "name", "target"],
-      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
-    },
-
-    // Protocoles autorisés dans les liens
-    allowedSchemes: ["http", "https", "mailto"],
-
-    // Interdit tous les styles inline
-    allowedStyles: {},
-    });
-
-    // Trouver API avec les meta d'un livre
->>>>>>> backend
     Book.findOne({gutendexId: bookData.id}).then((data) => {
         if (data === null) { // Si le livre n'est pas dans la base de données => l'ajouter
           const newBook = new Book({
