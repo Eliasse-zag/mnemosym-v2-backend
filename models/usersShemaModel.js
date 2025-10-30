@@ -5,6 +5,9 @@ const userSchema = mongoose.Schema({
   email: String,
   password: String,
   token: String,
+  fragment: { type: Number,
+    default: 1 }
+
 });
 
 const User = mongoose.model('users', userSchema);

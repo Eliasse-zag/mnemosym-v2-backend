@@ -10,8 +10,8 @@ const bcrypt = require('bcrypt');
 //-----------S'Inscrire------------//
 
 router.post('/signup', (req, res) => {
-  if (!checkBody(req.body, ['username', 'password'])) {
-    res.json({ result: false, error: 'Missing or empty fields' });
+  if (!checkBody(req.body, ['username', 'email', 'password'])) {
+    res.json({ result: false, user: newUser, error: 'Utilisateur déjà existant' });
     return;
   }
 
@@ -19,19 +19,21 @@ router.post('/signup', (req, res) => {
   User.findOne({ username: req.body.username }).then(data => {
     if (data === null) {
       const hash = bcrypt.hashSync(req.body.password, 10);
+console.log(req.body);
 
       const newUser = new User({
         username: req.body.username,
         email: req.body.email,
         password: hash,
         token: uid2(32),
+        fragment: 1
       });
 
       newUser.save().then(newDoc => {
-        res.json({ result: true, token: newDoc.token });
-      });
+  res.json({ result: true, token: newDoc.token, fragment: newDoc.fragment });
+});
     } else {
-      res.json({ result: false, error: 'User already exists' });
+      res.json({ result: false, error: 'Utilisateur déjà existant' });
     }
   });
 });
@@ -50,23 +52,31 @@ router.post('/signin', (req, res) => {
   // Verifie si un user est deja enregistré
   User.findOne({ username: req.body.username }).then(data => {
     if (data && bcrypt.compareSync(req.body.password, data.password)) {
-      res.json({ result: true, token: data.token });
+     res.json({ result: true, token: data.token, fragment: data.fragment });
     } else {
       res.json({ result: false, error: 'User not found or wrong password' });
     }
   });
 });
 
-// ----------- PROFIL UTILISATEUR ----------- //
-router.get('/:token', (req, res) => {
-  User.findOne({ token: req.params.token }).then(data => {
-    if (data) {
-      res.json({ result: true, user: { username: data.username } });
+
+
+
+// ----------- Récupérer les fragments d'un utilisateur ----------- //
+
+router.get('/fragments/:token', async (req, res) => {
+  try {
+    const user = await User.findOne({ token: req.params.token });
+    if (user) {
+      res.json({ result: true, fragments: user.fragment });
     } else {
-      res.json({ result: false, error: 'User not found' });
+      res.status(404).json({ result: false, error: 'User not found' });
     }
-  });
+  } catch (err) {
+    res.status(500).json({ result: false, error: 'Server error' });
+  }
 });
 
 
-module.exports = router
+
+module.exports = router;

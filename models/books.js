@@ -8,6 +8,7 @@ const bookSchema = mongoose.Schema({
     addAt: Date,
     synopsis: String,
     content: String,
+    fragmentsCollected: { type: Number, default: 0 },
     comments: [{type: mongoose.Schema.Types.ObjectId, ref:'comments'},]
 });
 
