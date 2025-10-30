@@ -54,4 +54,40 @@ router.post("/:bookId", async (req, res) => {
   }
 });
 
+// Liker / Disliker un commentaire
+router.put("/likeComment", async (req, res) => {
+  try {
+    const { token, commentId } = req.body;
+
+    if (!token || !commentId)
+      return res.json({ result: false, error: "Champs manquants." });
+
+    const comment = await Comment.findById(commentId);
+    if (!comment)
+      return res.json({ result: false, error: "Commentaire introuvable." });
+
+    // Vérifie si le token de l'utilisateur est déjà présent
+    const hasLiked = comment.isLike.includes(token);
+
+    if (hasLiked) {
+      // Dislike
+      comment.isLike = comment.isLike.filter((t) => t !== token);
+    } else {
+      // Like
+      comment.isLike.push(token);
+    }
+
+    await comment.save();
+
+    res.json({
+      result: true,
+      liked: !hasLiked,
+      likeCount: comment.isLike.length,
+    });
+  } catch (error) {
+    console.error("Erreur like:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur." });
+  }
+});
+
 module.exports = router;
