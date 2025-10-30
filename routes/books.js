@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var sanitizeHTML = require('sanitize-html');
+const User = require('../models/usersShemaModel');
 const Book = require('../models/books');
 const fetch = require('node-fetch');
 
@@ -141,5 +142,48 @@ router.get('/:id', (req, res) => {
         }
     });   
 })  
+
+
+
+// ----------- Ajouter un fragment au livre ----------- //
+
+router.post('/giveFragment', async (req, res) => {
+  const { token, bookId } = req.body;
+
+  if (!token || !bookId) {
+    return res.status(400).json({ result: false, error: 'Champs manquants' });
+  }
+
+  try {
+    const user = await User.findOne({ token });
+    const book = await Book.findById(bookId);
+
+    if (!user || !book) {
+      return res.status(404).json({ result: false, error: 'Utilisateur ou livre introuvable' });
+    }
+
+    if (user.fragment < 1) {
+      return res.status(403).json({ result: false, error: 'Fragments insuffisants' });
+    }
+
+    user.fragment -= 1;
+    book.fragmentsCollected += 1;
+
+    await user.save();
+    await book.save();
+
+    res.json({
+      result: true,
+      message: 'Fragment donné avec succès',
+      userFragments: user.fragment,
+      bookFragments: book.fragmentsCollected
+    });
+  } catch (err) {
+    res.status(500).json({ result: false, error: 'Erreur serveur' });
+  }
+});
+
+
+
 
 module.exports = router;

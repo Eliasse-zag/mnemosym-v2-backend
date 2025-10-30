@@ -5,7 +5,7 @@ const userSchema = mongoose.Schema({
   email: String,
   password: String,
   token: String,
-  fragment: { type: Number, default: 1 },
+  fragment: { type: Number, default: 20 },
   library: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
 });
 
