@@ -6,7 +6,7 @@ const userSchema = mongoose.Schema({
   password: String,
   token: String,
   fragment: { type: Number,
-    default: 1 }
+    default: 20 }
 
 });
 

@@ -26,7 +26,7 @@ console.log(req.body);
         email: req.body.email,
         password: hash,
         token: uid2(32),
-        fragment: 1
+        fragment: 20
       });
 
       newUser.save().then(newDoc => {
