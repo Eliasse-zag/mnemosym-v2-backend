@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-
+var sanitizeHTML = require('sanitize-html');
 const Book = require('../models/books');
 const fetch = require('node-fetch');
 
@@ -25,7 +25,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
             title: bookData.title, 
             author: bookData.authors[0].name,
             synopsis: bookData.summaries[0],
-            content: textContent, 
+            content: cleanHtml, 
         }); 
         newBook.save().then(data => res.json({result: true, data}))
     } else { // Si le livre est dans la base de données => error
@@ -36,6 +36,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
 
 // Ajouter un livre dans la collection Book, à partir de son titre récupéré sur le front (req.body.title)
 router.post('/addBookByTitle', async(req, res) => {
+    
     const title = req.body.title;
     if (!title) {
         return res.json({result: false, error: 'Title is required'});
@@ -72,7 +73,7 @@ router.post('/addBookByTitle', async(req, res) => {
                 title: bookData.title, 
                 author: bookData.authors[0].name,
                 synopsis: bookData.summaries[0],
-                content: textContent
+                content: cleanHtml
             })
             newBook.save().then(data => res.json({result: true, data}))
         } else { // Si le livre est dans la base de données => error
