@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
-
+var sanitizeHTML = require('sanitize-html');
 const Book = require('../models/books');
 const fetch = require('node-fetch');
+
 
 // Ajouter un livre dans la collection Book, lorsque celui ci intègre la bibliothèque.
 router.post('/newBook/:gutendexId', async(req, res) => {
@@ -18,6 +19,26 @@ router.post('/newBook/:gutendexId', async(req, res) => {
     const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du text en HTML
     const textContent = await textUrl.text(); // conversion au format text 
 
+    // Nettoyage du HTML avant stockage dans la BDD
+    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
+    const cleanHtml = sanitizeHTML(cleanedRaw, {
+        allowedTags: [
+      "p", "h1", "h2", "h3", "h4", "h5",
+      "em", "strong", "blockquote",
+      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
+    ],
+    allowedAttributes: {
+      a: ["href", "name", "target"],
+      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
+    },
+
+    // Protocoles autorisés dans les liens
+    allowedSchemes: ["http", "https", "mailto"],
+
+    // Interdit tous les styles inline
+    allowedStyles: {},
+    });
+
     // Trouver API avec les meta d'un livre 
   Book.findOne({gutendexId: gutendexId}).then((data) => {
     if (data === null ) { // Si le livre n'est pas dans la base de donnée : l'ajouter
@@ -25,7 +46,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
             title: bookData.title, 
             author: bookData.authors[0].name,
             synopsis: bookData.summaries[0],
-            content: textContent, 
+            content: cleanHtml, 
         }); 
         newBook.save().then(data => res.json({result: true, data}))
     } else { // Si le livre est dans la base de données : error
@@ -36,6 +57,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
 
 // Ajouter un livre dans la collection Book, à partir de son titre récupéré sur le front (req.body.title)
 router.post('/addBookByTitle', async(req, res) => {
+    
     const title = req.body.title;
     if (!title) {
         return res.json({result: false, error: 'Title is required'});
@@ -64,8 +86,27 @@ router.post('/addBookByTitle', async(req, res) => {
     // Récupération du texte
     const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.html.images`); // récupération du text en HTML
     // Test avec format textPlain 
-    const textPlainUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.txt.utf-8`)
-    const textContent = await textPlainUrl.text(); // conversion au format text
+    //const textPlainUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.txt.utf-8`)
+    const textContent = await textUrl.text(); // conversion au format text
+
+    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
+    const cleanHtml = sanitizeHTML(cleanedRaw, {
+        allowedTags: [
+      "p", "h1", "h2", "h3", "h4", "h5",
+      "em", "strong", "blockquote",
+      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
+    ],
+    allowedAttributes: {
+      a: ["href", "name", "target"],
+      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
+    },
+
+    // Protocoles autorisés dans les liens
+    allowedSchemes: ["http", "https", "mailto"],
+
+    // Interdit tous les styles inline
+    allowedStyles: {},
+    });
 
     // Trouver API avec les meta d'un livre
     Book.findOne({gutendexId: bookData.id}).then((data) => {
@@ -75,7 +116,7 @@ router.post('/addBookByTitle', async(req, res) => {
                 title: bookData.title, 
                 author: bookData.authors[0].name,
                 synopsis: bookData.summaries[0],
-                content: textContent
+                content: cleanHtml
             })
             newBook.save().then(data => res.json({result: true, data}))
             
