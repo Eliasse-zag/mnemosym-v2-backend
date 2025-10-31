@@ -5,8 +5,13 @@ const commentSchema = mongoose.Schema({
   content: String,
   postedAt: { type: Date, default: Date.now },
   book: { type: mongoose.Schema.Types.ObjectId, ref: "books" },
+
+  // Tableau contenant les "likes" du commentaire
+  // Ici, chaque élément est une chaîne (le token utilisateur)
+  // Cela permet d’éviter qu’un utilisateur like plusieurs fois le même commentaire
   isLike: [{ type: String, default: [] }],
 });
 
 const Comment = mongoose.model("comments", commentSchema);
+
 module.exports = Comment;

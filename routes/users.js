@@ -81,29 +81,37 @@ router.get("/fragments/:token", async (req, res) => {
 // ----------- AJOUT / SUPPRESSION D'UN LIVRE (Bookmark) ----------- //
 router.put("/toggleLibrary/:token/:bookId", async (req, res) => {
   try {
+    // On cherche l'utilisateur grâce à son token
     const user = await User.findOne({ token: req.params.token });
     if (!user) {
       return res.json({ result: false, error: "Utilisateur non trouvé" });
     }
 
+    // On récupère l'identifiant du livre
     const bookId = req.params.bookId;
     const book = await Book.findById(bookId);
     if (!book) {
       return res.json({ result: false, error: "Livre introuvable" });
     }
 
+    // On vérifie si le livre est déjà dans la bibliothèque de l'utilisateur
     const index = user.library.findIndex((id) => id.toString() === bookId);
     let added;
 
+    // S’il n’y est pas → on l’ajoute
     if (index === -1) {
       user.library.push(bookId);
       added = true;
     } else {
+      // S’il y est déjà → on le retire
       user.library.splice(index, 1);
       added = false;
     }
 
+    // On sauvegarde la mise à jour dans MongoDB
     await user.save();
+
+    // On renvoie une réponse JSON au frontend
     res.json({ result: true, added });
   } catch (error) {
     console.error("Erreur toggleLibrary:", error);
@@ -114,12 +122,13 @@ router.put("/toggleLibrary/:token/:bookId", async (req, res) => {
 // ----------- RÉCUPÉRER LA BIBLIOTHÈQUE DE L'UTILISATEUR ----------- //
 router.get("/:token/library", async (req, res) => {
   try {
-    const user = await User.findOne({ token: req.params.token }).populate(
-      "library"
-    );
+    // On récupère l'utilisateur avec ses livres
+    const user = await User.findOne({ token: req.params.token }).populate("library");
     if (!user) {
       return res.json({ result: false, error: "Utilisateur non trouvé" });
     }
+
+    // On renvoie la bibliothèque (tableau d'objets Book)
     res.json({ result: true, library: user.library });
   } catch (error) {
     console.error("Erreur get library:", error);
@@ -134,6 +143,8 @@ router.get("/:token", async (req, res) => {
     if (!user) {
       return res.json({ result: false, error: "Utilisateur non trouvé" });
     }
+
+    // On renvoie uniquement les infos utiles (pas le mot de passe)
     res.json({
       result: true,
       user: { username: user.username, email: user.email, token: user.token },
