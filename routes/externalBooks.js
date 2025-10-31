@@ -1,10 +1,12 @@
 var express = require('express');
 var router = express.Router();
 const externalBook = require('../models/externalBooks');
+const User = require('../models/usersShemaModel');
 const fetch = require('node-fetch');
 
 // Ajouter un livre externe via son titre (recherche sur Gutendex)
 router.post('/addBookByTitle', async(req, res) => {
+
     try {
         const {title} = req.body; 
         if (!title) return res.status(400).json({result: false, error: 'Title is required'}); 
@@ -27,11 +29,16 @@ router.post('/addBookByTitle', async(req, res) => {
     const existingBook = await externalBook.findOne({ gutendexId: bookData.id });
     if (existingBook) return res.json({ result: false, error: 'Book already in database' });
     
+    const bookCount = await externalBook.countDocuments(); // nombre total de livres
+    const fragmentsRequired = 10 + bookCount;
+
     const newBook = new externalBook({
         gutendexId: bookData.id,
         title: bookData.title, 
         author: bookData.authors?.[0].name || 'Unknown',
         synopsis: bookData.summaries?.[0] || 'No synopsis available',
+        fragmentsRequired,
+        fragmentsCollected: 0,
     })
 
     const savedBook = await  await newBook.save();
@@ -49,5 +56,35 @@ router.get('/allExternalBooks', (req, res) => {
         res.json({result: true, books})
     });
 });
+
+router.post('/giveFragment', async (req, res) => {
+  const { token, bookId } = req.body;
+  if (!token || !bookId) {   // Vérifie que les deux champs sont bien présents
+    return res.status(400).json({ result: false, error: 'Champs manquants' });
+  }
+  try {
+    const user = await User.findOne({ token });   // Recherche de l'utilisateur via son token
+    const book = await externalBook.findById(bookId);
+    if (!user || !book) {  // Vérifie que l'utilisateur et le livre existent
+      return res.status(404).json({ result: false, error: 'Utilisateur ou livre introuvable' });
+    }
+    if (user.fragment < 1) {  // Vérifie que l'utilisateur a au moins 1 fragment à donner
+      return res.status(403).json({ result: false, error: 'Fragments insuffisants' });
+    }
+    user.fragment -= 1;  // Décrémente les fragments de l'utilisateur
+    book.fragmentsCollected += 1;  // Incrémente les fragments collectés pour le livre
+    await user.save();      // Sauvegarde les modifications en base de données
+    await book.save();
+    res.json({     // Réponse JSON avec les nouvelles valeurs mises à jour
+      result: true,
+      message: 'Fragment donné avec succès',
+      userFragments: user.fragment,
+      bookFragments: book.fragmentsCollected
+    });
+  } catch (err) {
+    res.status(500).json({ result: false, error: 'Erreur serveur' });
+  }
+});
+
 
 module.exports = router;
