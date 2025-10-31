@@ -78,73 +78,129 @@ router.get("/fragments/:token", async (req, res) => {
   }
 });
 
-// ----------- AJOUT / SUPPRESSION D'UN LIVRE (Bookmark) ----------- //
-router.put("/toggleLibrary/:token/:bookId", async (req, res) => {
+
+//Ajouter ou retirer un livre des "livres lus"
+router.put("/toggleReadBook/:token/:bookId", async (req, res) => {
   try {
-    // On cherche l'utilisateur grâce à son token
+    // On cherche l'utilisateur correspondant au token fourni
     const user = await User.findOne({ token: req.params.token });
-    if (!user) {
-      return res.json({ result: false, error: "Utilisateur non trouvé" });
-    }
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
 
-    // On récupère l'identifiant du livre
-    const bookId = req.params.bookId;
-    const book = await Book.findById(bookId);
-    if (!book) {
-      return res.json({ result: false, error: "Livre introuvable" });
-    }
+    // On cherche le livre via son ID (bookId)
+    const book = await Book.findById(req.params.bookId);
+    if (!book) return res.json({ result: false, error: "Livre introuvable" });
 
-    // On vérifie si le livre est déjà dans la bibliothèque de l'utilisateur
-    const index = user.library.findIndex((id) => id.toString() === bookId);
-    let added;
+    // Vérifie si le livre est déjà présent dans la liste des livres lus
+    const index = user.readBooks.findIndex(
+      (id) => id.toString() === req.params.bookId
+    );
 
-    // S’il n’y est pas → on l’ajoute
+    let added; // Variable booléenne pour savoir si le livre a été ajouté ou retiré
+
     if (index === -1) {
-      user.library.push(bookId);
+      // S’il n’est pas encore dans la liste → on l’ajoute
+      user.readBooks.push(book._id);
       added = true;
     } else {
       // S’il y est déjà → on le retire
-      user.library.splice(index, 1);
+      user.readBooks.splice(index, 1);
       added = false;
     }
 
-    // On sauvegarde la mise à jour dans MongoDB
+    // On sauvegarde les changements dans MongoDB
     await user.save();
 
-    // On renvoie une réponse JSON au frontend
+    // On renvoie une réponse claire au front-end
     res.json({ result: true, added });
   } catch (error) {
-    console.error("Erreur toggleLibrary:", error);
+    // Gestion d’erreur serveur
+    console.error("Erreur toggleReadBook:", error);
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
 });
 
-// ----------- RÉCUPÉRER LA BIBLIOTHÈQUE DE L'UTILISATEUR ----------- //
-router.get("/:token/library", async (req, res) => {
+
+//Récupérer la liste des livres lus
+router.get("/:token/readBooks", async (req, res) => {
   try {
-    // On récupère l'utilisateur avec ses livres
-    const user = await User.findOne({ token: req.params.token }).populate("library");
-    if (!user) {
-      return res.json({ result: false, error: "Utilisateur non trouvé" });
+    // On récupère l’utilisateur avec sa liste de livres lus
+    // Le "populate" permet de remplacer les IDs par les objets "Book" complets
+    const user = await User.findOne({ token: req.params.token }).populate("readBooks");
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    // On renvoie la liste des livres
+    res.json({ result: true, readBooks: user.readBooks });
+  } catch (error) {
+    console.error("Erreur get readBooks:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
+
+
+/* --------------------LIVRES À LIRE -------------------- */
+
+// ➕/➖ Ajouter ou retirer un livre des "livres à lire"
+router.put("/toggleToRead/:token/:bookId", async (req, res) => {
+  try {
+    // Récupération de l'utilisateur via son token
+    const user = await User.findOne({ token: req.params.token });
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    // Récupération du livre concerné
+    const book = await Book.findById(req.params.bookId);
+    if (!book) return res.json({ result: false, error: "Livre introuvable" });
+
+    // Vérifie si le livre est déjà dans la liste "à lire"
+    const index = user.toRead.findIndex((id) => id.toString() === req.params.bookId);
+    let added;
+
+    if (index === -1) {
+      // Le livre n’est pas encore dans la liste → on l’ajoute
+      user.toRead.push(book._id);
+      added = true;
+    } else {
+      // Le livre y est déjà → on le retire
+      user.toRead.splice(index, 1);
+      added = false;
     }
 
-    // On renvoie la bibliothèque (tableau d'objets Book)
-    res.json({ result: true, library: user.library });
+    // On sauvegarde les modifications
+    await user.save();
+
+    // On renvoie la confirmation au front
+    res.json({ result: true, added });
   } catch (error) {
-    console.error("Erreur get library:", error);
+    console.error("Erreur toggleToRead:", error);
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
 });
 
-// ----------- RÉCUPÉRER LE PROFIL UTILISATEUR ----------- //
+
+// Récupérer la liste des livres à lire
+router.get("/:token/toRead", async (req, res) => {
+  try {
+    // Même principe que pour les livres lus, mais sur la liste "toRead"
+    const user = await User.findOne({ token: req.params.token }).populate("toRead");
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    res.json({ result: true, toRead: user.toRead });
+  } catch (error) {
+    console.error("Erreur get toRead:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
+
+
+/* -------------------- PROFIL UTILISATEUR -------------------- */
+
 router.get("/:token", async (req, res) => {
   try {
+    // On cherche l’utilisateur par son token pour afficher ses infos de profil
     const user = await User.findOne({ token: req.params.token });
-    if (!user) {
+    if (!user)
       return res.json({ result: false, error: "Utilisateur non trouvé" });
-    }
 
-    // On renvoie uniquement les infos utiles (pas le mot de passe)
+    // On renvoie uniquement les infos non sensibles
     res.json({
       result: true,
       user: { username: user.username, email: user.email, token: user.token },

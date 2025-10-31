@@ -6,7 +6,12 @@ const userSchema = mongoose.Schema({
   password: String,
   token: String,
   fragment: { type: Number, default: 20 },
-  library: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
+
+  //Livres terminés
+  readBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
+
+  //Livres à lire
+  toRead: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
 });
 
 const User = mongoose.model("users", userSchema);
