@@ -5,7 +5,7 @@ const { checkBody } = require("../modules/checkBody");
 const uid2 = require("uid2"); // Générateur de token unique
 const bcrypt = require("bcrypt"); // Librairie pour hasher les mots de passe
 const Book = require("../models/books.js");
-
+const Comment = require("../models/comments");
 
 
 
@@ -203,6 +203,29 @@ router.get("/:token/toRead", async (req, res) => {
   }
 });
 
+/* --------------------  STATISTIQUES UTILISATEUR -------------------- */
+// GET → /users/:token/stats
+router.get("/:token/stats", async (req, res) => {
+  try {
+    const user = await User.findOne({ token: req.params.token });
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    // Compter le nombre de commentaires écrits par cet utilisateur
+    const commentCount = await Comment.countDocuments({ author: user._id });
+
+    res.json({
+      result: true,
+      stats: {
+        commentCount,
+        fragmentsCurrent: user.fragment,
+        fragmentsTotal: user.totalFragments,
+      },
+    });
+  } catch (error) {
+    console.error("Erreur get stats:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
 
 /* -------------------- PROFIL UTILISATEUR -------------------- */
 
@@ -223,5 +246,7 @@ router.get("/:token", async (req, res) => {
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
 });
+
+
 
 module.exports = router;
