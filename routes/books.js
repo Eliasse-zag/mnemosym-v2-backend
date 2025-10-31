@@ -146,7 +146,7 @@ router.get('/:id', (req, res) => {
 
 
 // ----------- Ajouter un fragment au livre ----------- //
-
+/*
 router.post('/giveFragment', async (req, res) => {
   const { token, bookId } = req.body;
   if (!token || !bookId) {   // Vérifie que les deux champs sont bien présents
@@ -193,6 +193,6 @@ router.post('/addBookByTitles', async (req, res) => {
   res.json({ result: true, book: newBook });
 });
 
-
+*/
 
 module.exports = router;
