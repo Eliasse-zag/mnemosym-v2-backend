@@ -6,8 +6,8 @@ const fetch = require('node-fetch');
 // Ajouter un livre externe via son titre (recherche sur Gutendex)
 router.post('/addBookByTitle', async(req, res) => {
     try {
-        const title = req.body.title;
-        if (!title) return res.status(400).json({result: false, error: 'Title is required'});
+        const {title} = req.body; 
+        if (!title) return res.status(400).json({result: false, error: 'Title is required'}); 
 
     //Exemple d'URL à exploiter : https://gutendex.com/books?search=dickens%20great
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
