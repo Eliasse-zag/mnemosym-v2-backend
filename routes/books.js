@@ -149,30 +149,23 @@ router.get('/:id', (req, res) => {
 
 router.post('/giveFragment', async (req, res) => {
   const { token, bookId } = req.body;
-
-  if (!token || !bookId) {
+  if (!token || !bookId) {   // Vérifie que les deux champs sont bien présents
     return res.status(400).json({ result: false, error: 'Champs manquants' });
   }
-
   try {
-    const user = await User.findOne({ token });
+    const user = await User.findOne({ token });   // Recherche de l'utilisateur via son token
     const book = await Book.findById(bookId);
-
-    if (!user || !book) {
+    if (!user || !book) {  // Vérifie que l'utilisateur et le livre existent
       return res.status(404).json({ result: false, error: 'Utilisateur ou livre introuvable' });
     }
-
-    if (user.fragment < 1) {
+    if (user.fragment < 1) {  // Vérifie que l'utilisateur a au moins 1 fragment à donner
       return res.status(403).json({ result: false, error: 'Fragments insuffisants' });
     }
-
-    user.fragment -= 1;
-    book.fragmentsCollected += 1;
-
-    await user.save();
+    user.fragment -= 1;  // Décrémente les fragments de l'utilisateur
+    book.fragmentsCollected += 1;  // Incrémente les fragments collectés pour le livre
+    await user.save();      // Sauvegarde les modifications en base de données
     await book.save();
-
-    res.json({
+    res.json({     // Réponse JSON avec les nouvelles valeurs mises à jour
       result: true,
       message: 'Fragment donné avec succès',
       userFragments: user.fragment,
@@ -183,6 +176,30 @@ router.post('/giveFragment', async (req, res) => {
   }
 });
 
+
+
+
+
+// ----------- Ajouter un livre en fonction du nombre de fragment requis ----------- //
+
+
+router.post('/addBookByTitles', async (req, res) => {
+  const { title } = req.body;
+  const bookCount = await Book.countDocuments(); // nombre total de livres
+  const fragmentsRequired = 10 + bookCount;
+  const book = await Book.findById(bookId);
+  if (book.fragmentsCollected >= book.fragmentsRequired) {
+  return res.json({ result: false, error: 'Fragments déjà complets pour ce livre.' });
+}
+  const newBook = new Book({
+    title,
+    fragmentsRequired,
+    fragmentsCollected: 0,
+  });
+
+  await newBook.save();
+  res.json({ result: true, book: newBook });
+});
 
 
 

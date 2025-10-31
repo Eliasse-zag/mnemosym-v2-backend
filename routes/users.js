@@ -2,9 +2,12 @@ var express = require("express");
 var router = express.Router();
 const User = require("../models/usersShemaModel.js");
 const { checkBody } = require("../modules/checkBody");
-const uid2 = require("uid2");
-const bcrypt = require("bcrypt");
+const uid2 = require("uid2"); // Générateur de token unique
+const bcrypt = require("bcrypt"); // Librairie pour hasher les mots de passe
 const Book = require("../models/books.js");
+
+
+
 
 //-----------S'Inscrire------------//
 
@@ -21,18 +24,20 @@ router.post("/signup", (req, res) => {
   // Verifie si un user est deja enregistré
   User.findOne({ username: req.body.username }).then((data) => {
     if (data === null) {
-      const hash = bcrypt.hashSync(req.body.password, 10);
+      const hash = bcrypt.hashSync(req.body.password, 10);  // Hash du mot de passe
+
       console.log(req.body);
 
-      const newUser = new User({
+      const newUser = new User({   // Création d’un nouvel utilisateur
         username: req.body.username,
         email: req.body.email,
         password: hash,
         token: uid2(32),
-        fragment: 20
+        fragment: 20  // Valeur initiale des fragments
+
       });
 
-      newUser.save().then((newDoc) => {
+      newUser.save().then((newDoc) => {  // Sauvegarde en base de données
         res.json({
           result: true,
           token: newDoc.token,
@@ -40,28 +45,35 @@ router.post("/signup", (req, res) => {
         });
       });
     } else {
-      res.json({ result: false, error: "Utilisateur déjà existant" });
+      res.json({ result: false, error: "Utilisateur déjà existant" });   // Utilisateur déjà existant
     }
   });
 });
 
+
+
+
+
 //------------Se Connecter -----------//
 
 router.post("/signin", (req, res) => {
-  if (!checkBody(req.body, ["username", "password"])) {
+  if (!checkBody(req.body, ["username", "password"])) {   // Vérifie que les champs sont bien remplis
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
 
   // Verifie si un user est deja enregistré
   User.findOne({ username: req.body.username }).then((data) => {
-    if (data && bcrypt.compareSync(req.body.password, data.password)) {
+    if (data && bcrypt.compareSync(req.body.password, data.password)) {    // Vérifie le mot de passe
       res.json({ result: true, token: data.token, fragment: data.fragment });
     } else {
       res.json({ result: false, error: "User not found or wrong password" });
     }
   });
 });
+
+
+
 
 // ----------- Récupérer les fragments d'un utilisateur ----------- //
 
@@ -78,7 +90,10 @@ router.get("/fragments/:token", async (req, res) => {
   }
 });
 
+
+
 // ----------- AJOUT / SUPPRESSION D'UN LIVRE (Bookmark) ----------- //
+
 router.put("/toggleLibrary/:token/:bookId", async (req, res) => {
   try {
     const user = await User.findOne({ token: req.params.token });
@@ -92,14 +107,15 @@ router.put("/toggleLibrary/:token/:bookId", async (req, res) => {
       return res.json({ result: false, error: "Livre introuvable" });
     }
 
-    const index = user.library.findIndex((id) => id.toString() === bookId);
+    const index = user.library.findIndex((id) => id.toString() === bookId);  // Vérifie si le livre est déjà dans la bibliothèque
     let added;
 
     if (index === -1) {
-      user.library.push(bookId);
+      user.library.push(bookId);   // Ajoute le livre
       added = true;
+
     } else {
-      user.library.splice(index, 1);
+      user.library.splice(index, 1);   // Retire le livre
       added = false;
     }
 
@@ -111,7 +127,11 @@ router.put("/toggleLibrary/:token/:bookId", async (req, res) => {
   }
 });
 
+
+
+
 // ----------- RÉCUPÉRER LA BIBLIOTHÈQUE DE L'UTILISATEUR ----------- //
+
 router.get("/:token/library", async (req, res) => {
   try {
     const user = await User.findOne({ token: req.params.token }).populate(
@@ -127,7 +147,11 @@ router.get("/:token/library", async (req, res) => {
   }
 });
 
+
+
+
 // ----------- RÉCUPÉRER LE PROFIL UTILISATEUR ----------- //
+
 router.get("/:token", async (req, res) => {
   try {
     const user = await User.findOne({ token: req.params.token });
