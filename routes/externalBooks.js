@@ -43,6 +43,11 @@ router.post('/addBookByTitle', async(req, res) => {
     }
 })
 
-
+// Récupérer tous les livres de la collection Book  
+router.get('/allExternalBooks', (req, res) => {
+    externalBook.find().then((books) => {
+        res.json({result: true, books})
+    });
+});
 
 module.exports = router;

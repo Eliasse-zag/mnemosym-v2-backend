@@ -92,12 +92,12 @@ router.post('/addBookByTitle', async(req, res) => {
     const cleanHtml = sanitizeHTML(cleanedRaw, {
         allowedTags: [
       "p", "h1", "h2", "h3", "h4", "h5",
-      "em", "strong", "blockquote",
-      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
+      "em", "blockquote",
+      "ul", "ol", "li", "a", "hr", "br", "span", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
     ],
     allowedAttributes: {
       a: ["href", "name", "target"],
-      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
+      "*": ["class"] // pour conserver des classes utiles à la mise en forme
     },
 
     // Protocoles autorisés dans les liens
