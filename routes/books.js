@@ -176,21 +176,13 @@ router.post('/giveFragment', async (req, res) => {
   }
 });
 
-
-
-
-
-// ----------- Ajouter un livre en fonction du nombre de fragment requis ----------- //
-
-
+// Ajouter un livre en fonction du nombre de fragment requis
 router.post('/addBookByTitles', async (req, res) => {
   const { title } = req.body;
+
   const bookCount = await Book.countDocuments(); // nombre total de livres
   const fragmentsRequired = 10 + bookCount;
-  const book = await Book.findById(bookId);
-  if (book.fragmentsCollected >= book.fragmentsRequired) {
-  return res.json({ result: false, error: 'Fragments déjà complets pour ce livre.' });
-}
+
   const newBook = new Book({
     title,
     fragmentsRequired,
