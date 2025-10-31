@@ -152,7 +152,7 @@ router.get("/:token/readBooks", async (req, res) => {
 
 /* --------------------LIVRES À LIRE -------------------- */
 
-// ➕/➖ Ajouter ou retirer un livre des "livres à lire"
+//Ajouter ou retirer un livre des "livres à lire"
 router.put("/toggleToRead/:token/:bookId", async (req, res) => {
   try {
     // Récupération de l'utilisateur via son token
