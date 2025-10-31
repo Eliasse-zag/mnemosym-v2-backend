@@ -65,6 +65,11 @@ router.post("/:bookId", async (req, res) => {
     book.comments.push(savedComment._id);
     await book.save();
 
+        //  Récompense : +1 fragment actuel et total
+    user.fragment += 1;
+    user.totalFragments += 1;
+    await user.save();
+
     // Réponse au frontend avec le nouveau commentaire
     res.json({ result: true, comment: populatedComment });
   } catch (error) {
