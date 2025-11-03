@@ -152,11 +152,35 @@ router.post('/newBookFromExternalBook/:gutendexId', async(req, res) => {
  // console.log("reçu", foundBook.fragmentsRequired, "requis", foundBook.fragmentsCollected)
 
   if (foundBook.fragmentsRequired === foundBook.fragmentsCollected) {
+
+    // Récupération du texte à partir de l'URL
+    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du texte en HTML
+    const textContent = await textUrl.text(); // conversion au format text 
+
+    // Nettoyage du HTML avant stockage dans la BDD
+    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
+    const cleanHtml = sanitizeHTML(cleanedRaw, {
+        allowedTags: [
+      "p", "h1", "h2", "h3", "h4", "h5",
+      "em", "strong", "blockquote",
+      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
+    ],
+    allowedAttributes: {
+      a: ["href", "name", "target"],
+      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
+    },
+    // Protocoles autorisés dans les liens
+    allowedSchemes: ["http", "https", "mailto"],
+    // Interdit tous les styles inline
+    allowedStyles: {},
+    });
+
     const newBook = new Book({
         gutendexId: foundBook.gutendexId,
         title: foundBook.title,
         author: foundBook.author, 
         synopsis: foundBook.synopsis,
+        content: cleanHtml,
         fragmentsCollected: foundBook.fragmentsCollected,
     })
 
