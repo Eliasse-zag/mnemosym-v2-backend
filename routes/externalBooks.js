@@ -41,7 +41,7 @@ router.post('/addBookByTitle', async(req, res) => {
         fragmentsCollected: 0,
     })
 
-    const savedBook = await  await newBook.save();
+    const savedBook = await newBook.save();
     return res.json({ result: true, data: savedBook });
     
       
@@ -57,6 +57,7 @@ router.get('/allExternalBooks', (req, res) => {
     });
 });
 
+// Donner un fragment à un livre d'externalBook
 router.post('/giveFragment', async (req, res) => {
   const { token, bookId } = req.body;
   if (!token || !bookId) {   // Vérifie que les deux champs sont bien présents
