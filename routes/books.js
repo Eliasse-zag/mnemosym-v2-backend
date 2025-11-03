@@ -3,6 +3,7 @@ var router = express.Router();
 var sanitizeHTML = require('sanitize-html');
 const User = require('../models/usersShemaModel');
 const Book = require('../models/books');
+const externalBook = require('../models/externalBooks');
 const fetch = require('node-fetch');
 
 // Ajouter un livre dans la collection Book via son ID Gutendex 
@@ -143,7 +144,30 @@ router.get('/:id', (req, res) => {
     });   
 })  
 
+// Ajouter un livre de la collection externalBook à la collection Book 
+router.post('/newBookFromExternalBook/:gutendexId', async(req, res) => {
+  const gutendexId = req.params.gutendexId
+  const foundBook = await externalBook.findOne({gutendexId})
+  //console.log(foundBook) // Test 4650 : Ok pour Candide
+ // console.log("reçu", foundBook.fragmentsRequired, "requis", foundBook.fragmentsCollected)
 
+  if (foundBook.fragmentsRequired === foundBook.fragmentsCollected) {
+    const newBook = new Book({
+        gutendexId: foundBook.gutendexId,
+        title: foundBook.title,
+        author: foundBook.author, 
+        synopsis: foundBook.synopsis,
+        fragmentsCollected: foundBook.fragmentsCollected,
+    })
+
+    const savedBook = await newBook.save();
+    //return res.json({ result: true, data: savedBook });
+    const deleteExternalBook = await externalBook.deleteOne({gutendexId})
+    return res.json({result: true, data: savedBook})
+
+  }
+
+})
 
 // ----------- Ajouter un fragment au livre ----------- //
 /*
