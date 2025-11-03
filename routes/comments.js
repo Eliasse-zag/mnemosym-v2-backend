@@ -61,23 +61,38 @@ router.post("/:bookId", async (req, res) => {
     // On remplit les infos de l’auteur (pour afficher son username)
     const populatedComment = await savedComment.populate("author", "username");
 
+       // --- Vérification de la longueur du commentaire ---
+   const MIN_LEN = 2000;// le commentaire doit faire au moins 2000 caractères
+    const actualLen = content.trim().length; //On mesure la longueur réelle du commentaire en supprimant les espaces au début et à la fin
+    let fragmentEarned = false;
+
+    if (actualLen >= MIN_LEN) {//Si le commentaire dépasse ou égale les 2000 caractères :
+        //  On vérifie si l’utilisateur a déjà été récompensé pour CE livre précis
+  // On compare chaque ID de "rewardedBooks" (livres déjà récompensés)
+  // avec l’ID du livre actuel (book._id)
+      const alreadyRewarded = user.rewardedBooks.some(
+        (b) => b.toString() === book._id.toString()
+      );
+
+      if (!alreadyRewarded) {  //  Si l’utilisateur N’A PAS encore reçu de fragment pour ce livre :
+        user.fragment += 1;
+        user.totalFragments += 1;
+        user.rewardedBooks.push(book._id); // on marque ce livre comme "récompensé"
+        fragmentEarned = true;
+        await user.save();}
+    }
+
     // Ajout du commentaire dans la liste des commentaires du livre
     book.comments.push(savedComment._id);
     await book.save();
 
-        //  Récompense : +1 fragment actuel et total
-    user.fragment += 1;
-    user.totalFragments += 1;
-    await user.save();
-
     // Réponse au frontend avec le nouveau commentaire
-    res.json({ result: true, comment: populatedComment });
+    res.json({ result: true, comment: populatedComment, fragmentEarned })
   } catch (error) {
     console.error("Erreur ajout commentaire:", error);
     res.status(500).json({ result: false, error: "Erreur serveur." });
   }
 });
-
 
 
 //LIKER / DISLIKER UN COMMENTAIRE

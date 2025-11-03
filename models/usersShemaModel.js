@@ -11,8 +11,9 @@ const userSchema = mongoose.Schema({
   readBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
   //Livres à lire
   toRead: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
+ //Liste des livres pour lesquels un fragment a déjà été gagné
+  rewardedBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
 });
-
 const User = mongoose.model("users", userSchema);
 
 module.exports = User;
