@@ -41,7 +41,7 @@ router.post('/addBookByTitle', async(req, res) => {
         fragmentsCollected: 0,
     })
 
-    const savedBook = await  await newBook.save();
+    const savedBook = await newBook.save();
     return res.json({ result: true, data: savedBook });
     
       
