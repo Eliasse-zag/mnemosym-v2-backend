@@ -30,7 +30,7 @@ router.post('/addBookByTitle', async(req, res) => {
     if (existingBook) return res.json({ result: false, error: 'Book already in database' });
     
     const bookCount = await externalBook.countDocuments(); // nombre total de livres
-    const fragmentsRequired = 10 + bookCount;
+    const fragmentsRequired = 1 + bookCount;
 
     const newBook = new externalBook({
         gutendexId: bookData.id,
