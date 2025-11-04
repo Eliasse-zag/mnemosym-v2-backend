@@ -3,7 +3,7 @@ var router = express.Router();
 const externalBook = require('../models/externalBooks');
 const User = require('../models/usersShemaModel');
 const Book = require('../models/books');
-const fetch = require('node-fetch');
+//const fetch = require('node-fetch');
 
 // Ajouter un livre externe via son titre (recherche sur Gutendex)
 router.post('/addBookByTitle', async(req, res) => {
