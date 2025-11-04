@@ -135,5 +135,22 @@ router.put("/likeComment", async (req, res) => {
   }
 });
 
+// RÉCUPÉRER TOUS LES COMMENTAIRES (CLASSÉS PAR LIKES)
+router.get("/club/all", async (req, res) => {
+  try {
+    // On récupère tous les commentaires avec leurs auteurs et livres
+    const comments = await Comment.find()
+      .populate("author", "username") // affiche le nom de l’auteur
+      .populate("book", "title") // affiche le titre du livre
+      .lean(); // transforme les documents Mongoose en objets JS simples
 
+    // Tri décroissant selon le nombre de likes
+    const sorted = comments.sort((a, b) => b.isLike.length - a.isLike.length);
+
+    res.json({ result: true, comments: sorted });
+  } catch (error) {
+    console.error("Erreur récupération club:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
 module.exports = router;
