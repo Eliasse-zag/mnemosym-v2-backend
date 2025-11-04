@@ -145,7 +145,7 @@ router.get('/:id', (req, res) => {
 })  
 
 // Ajouter un livre de la collection externalBook à la collection Book 
-router.post('/newBookFromExternalBook/:gutendexId', async(req, res) => {
+router.post('/newBookFromExternalBooks/:gutendexId', async(req, res) => {
   const gutendexId = req.params.gutendexId
   const foundBook = await externalBook.findOne({gutendexId})
   //console.log(foundBook) // Test 4650 : Ok pour Candide
