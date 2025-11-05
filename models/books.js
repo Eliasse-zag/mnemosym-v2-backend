@@ -10,8 +10,8 @@ const bookSchema = mongoose.Schema({
     content: String,
     fragmentsRequired: Number,
     fragmentsCollected: { type: Number, default: 0 },  // Nombre de fragments que possède le livre (par défaut 0)
-    comments: [{type: mongoose.Schema.Types.ObjectId, ref:'comments'},]
-});
+    comments: [{type: mongoose.Schema.Types.ObjectId, ref:'comments'},],
+},{ timestamps: true });
 
 const Book = mongoose.model('books', bookSchema);
 

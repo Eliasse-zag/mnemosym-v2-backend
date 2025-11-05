@@ -362,6 +362,22 @@ router.get("/:token", async (req, res) => {
   }
 });
 
+router.get("/:token/status/:bookId", async (req, res) => {
+  try {
+    const user = await User.findOne({ token: req.params.token })
+      .populate("readBooks")
+      .populate("toRead");
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    const isRead  = user.readBooks.some(b => b._id.toString() === req.params.bookId);
+    const isToRead = user.toRead.some(b => b._id.toString() === req.params.bookId);
+
+    res.json({ result: true, isRead, isToRead });
+  } catch (e) {
+    console.error("status error:", e);
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
 
 
 module.exports = router;

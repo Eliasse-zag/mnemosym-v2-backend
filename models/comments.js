@@ -10,6 +10,7 @@ const commentSchema = mongoose.Schema({
   // Ici, chaque élément est une chaîne (le token utilisateur)
   // Cela permet d’éviter qu’un utilisateur like plusieurs fois le même commentaire
   isLike: [{ type: String, default: [] }],
+  gaveFragment: { type: Boolean, default: false } // Indique si un fragment a déjà été donné pour ce commentaire
 });
 
 const Comment = mongoose.model("comments", commentSchema);

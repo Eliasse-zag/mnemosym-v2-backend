@@ -78,6 +78,7 @@ router.post("/:bookId", async (req, res) => {
         user.fragment += 1;
         user.totalFragments += 1;
         user.rewardedBooks.push(book._id); // on marque ce livre comme "récompensé"
+          newComment.gaveFragment = true;
         fragmentEarned = true;
         await user.save();}
     }
@@ -85,7 +86,7 @@ router.post("/:bookId", async (req, res) => {
     // Ajout du commentaire dans la liste des commentaires du livre
     book.comments.push(savedComment._id);
     await book.save();
-
+await newComment.save();
     // Réponse au frontend avec le nouveau commentaire
     res.json({ result: true, comment: populatedComment, fragmentEarned })
   } catch (error) {

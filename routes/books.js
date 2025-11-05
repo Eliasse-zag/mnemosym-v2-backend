@@ -48,6 +48,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
             author: bookData.authors[0].name,
             synopsis: bookData.summaries[0],
             content: cleanHtml, 
+            addAt: new Date(),
         }); 
         newBook.save().then(data => res.json({result: true, data}))
     } else { // Si le livre est dans la base de données => error
@@ -116,7 +117,8 @@ router.post('/addBookByTitle', async(req, res) => {
                 title: bookData.title, 
                 author: bookData.authors[0].name,
                 synopsis: bookData.summaries[0],
-                content: cleanHtml
+                content: cleanHtml,
+                addAt: new Date(),
             })
             newBook.save().then(data => res.json({result: true, data}))
         } else { // Si le livre est dans la base de données => error
@@ -126,10 +128,13 @@ router.post('/addBookByTitle', async(req, res) => {
 })
 
 // Récupérer tous les livres de la collection Book  
-router.get('/allBooks', (req, res) => {
-    Book.find().then((books) => {
-        res.json({result: true, books})
-    });
+router.get('/allBooks', async (req, res) => {
+  try {
+    const books = await Book.find().sort({ createdAt: -1 });
+    res.json({ result: true, books });
+  } catch (error) {
+    res.json({ result: false, error: "Erreur récupération des livres" });
+  }
 });
 
 // Récupérer un livre spécifique par son ID MongoDB
