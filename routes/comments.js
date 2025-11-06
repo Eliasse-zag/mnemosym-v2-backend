@@ -62,7 +62,7 @@ router.post("/:bookId", async (req, res) => {
     const populatedComment = await savedComment.populate("author", "username");
 
        // --- Vérification de la longueur du commentaire ---
-   const MIN_LEN = 2000;// le commentaire doit faire au moins 2000 caractères
+   const MIN_LEN = 1000;// le commentaire doit faire au moins 2000 caractères
     const actualLen = content.trim().length; //On mesure la longueur réelle du commentaire en supprimant les espaces au début et à la fin
     let fragmentEarned = false;
 
