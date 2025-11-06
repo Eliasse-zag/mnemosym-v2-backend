@@ -6,7 +6,7 @@ const userSchema = mongoose.Schema({
   password: String,
   token: String,
   fragment: { type: Number, default: 10 },  // Nombre de fragments que possède l'utilisateur (par défaut 10)
-  totalFragments: { type: Number, default: 0 },
+  totalFragments: { type: Number, default: 10 },
   //Livres terminés
   readBooks: [{ type: mongoose.Schema.Types.ObjectId, ref: "books" }],
   //Livres à lire
