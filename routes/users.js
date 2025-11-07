@@ -33,7 +33,7 @@ router.post("/signup", (req, res) => {
         email: req.body.email,
         password: hash,
         token: uid2(32),
-        fragment: 10  // Valeur initiale des fragments
+        fragment: 2  // Valeur initiale des fragments
 
       });
 
