@@ -1,60 +1,45 @@
 var express = require("express");
 var router = express.Router();
 const User = require("../models/users.js");
-const { checkBody } = require("../modules/checkBody");
-const uid2 = require("uid2"); // Générateur de token unique
-const bcrypt = require("bcrypt"); // Librairie pour hasher les mots de passe
 const Book = require("../models/books.js");
 const Comment = require("../models/comments");
+const uid2 = require("uid2"); // Générateur de token unique
+const bcrypt = require("bcrypt"); // Librairie pour hasher les mots de passe
+const { checkBody } = require("../modules/checkBody");
 
-
-
-//-----------S'Inscrire------------//
+//-----------Inscription------------//
 
 router.post("/signup", (req, res) => {
+  // vérfication du remplissage des champs obligatoires
   if (!checkBody(req.body, ["username", "email", "password"])) {
-    res.json({
-      result: false,
-      user: newUser,
-      error: "Utilisateur déjà existant",
-    });
+    res.json({result: false, error: "Missing or empty fields"});
     return;
   }
-
   // Verifie si un user est deja enregistré
   User.findOne({ username: req.body.username }).then((data) => {
     if (data === null) {
-      const hash = bcrypt.hashSync(req.body.password, 10);  // Hash du mot de passe
-
-      console.log(req.body);
-
-      const newUser = new User({   // Création d’un nouvel utilisateur
+      const hash = bcrypt.hashSync(req.body.password, 10);  // Hashage du password
+      const newUser = new User({   
         username: req.body.username,
         email: req.body.email,
         password: hash,
         token: uid2(32),
-        fragment: 2  // Valeur initiale des fragments
-
       });
 
-      newUser.save().then((newDoc) => {  // Sauvegarde en base de données
+      newUser.save().then((newDoc) => { 
         res.json({
           result: true,
-          token: newDoc.token,
+          token: newDoc.token, // Renvoyer le token à l'inscription pour la navigation utilisateur
           fragment: newDoc.fragment,
         });
       });
     } else {
-      res.json({ result: false, error: "Utilisateur déjà existant" });   // Utilisateur déjà existant
+      res.json({ result: false, error: "Utilisateur déjà existant" }); 
     }
   });
 });
 
-
-
-
-
-//------------Se Connecter -----------//
+//------------Connexion-----------//
 
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["username", "password"])) {   // Vérifie que les champs sont bien remplis
@@ -71,9 +56,6 @@ router.post("/signin", (req, res) => {
     }
   });
 });
-
-
-
 
 // ----------- Récupérer les fragments d'un utilisateur ----------- //
 
