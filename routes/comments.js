@@ -4,7 +4,7 @@ const router = express.Router();
 
 const Comment = require("../models/comments"); // Modèle des commentaires
 const Book = require("../models/books");       // Modèle des livres
-const User = require("../models/usersShemaModel"); // Modèle des utilisateurs
+const User = require("../models/users"); // Modèle des utilisateurs
 
 
 // RÉCUPÉRER TOUS LES COMMENTAIRES D’UN LIVRE

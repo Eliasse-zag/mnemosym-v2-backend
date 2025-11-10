@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('./app');
 const mongoose = require('mongoose');
-const User = require('./models/usersShemaModel');
+const User = require('./models/users');
 const Comment = require('./models/comments');
 require('dotenv').config();
 

@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const externalBook = require('../models/externalBooks');
-const User = require('../models/usersShemaModel');
+const User = require('../models/users');
 const Book = require('../models/books');
 //const fetch = require('node-fetch');
 

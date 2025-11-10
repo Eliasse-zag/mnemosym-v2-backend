@@ -1,6 +1,6 @@
 var express = require("express");
 var router = express.Router();
-const User = require("../models/usersShemaModel.js");
+const User = require("../models/users.js");
 const { checkBody } = require("../modules/checkBody");
 const uid2 = require("uid2"); // Générateur de token unique
 const bcrypt = require("bcrypt"); // Librairie pour hasher les mots de passe
