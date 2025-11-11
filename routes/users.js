@@ -7,7 +7,7 @@ const uid2 = require("uid2"); // Générateur de token unique
 const bcrypt = require("bcrypt"); // Librairie pour hasher les mots de passe
 const { checkBody } = require("../modules/checkBody");
 
-//-----------Inscription------------//
+//-----------INSCRIPTION------------//
 
 router.post("/signup", (req, res) => {
   // vérfication du remplissage des champs obligatoires
@@ -39,7 +39,7 @@ router.post("/signup", (req, res) => {
   });
 });
 
-//------------Connexion-----------//
+//------------CONNEXION-----------//
 
 router.post("/signin", (req, res) => {
   if (!checkBody(req.body, ["username", "password"])) {   // Vérifie que les champs sont bien remplis
@@ -89,12 +89,10 @@ router.put("/toggleReadBook/:token/:bookId", async (req, res) => {
     const index = user.readBooks.findIndex((id) => id.toString() === req.params.bookId);
 
     let added; // Variable booléenne pour savoir si le livre a été ajouté ou retiré
-
     if (index === -1) {
       // S’il n’est pas encore dans la liste → on l’ajoute
       user.readBooks.push(book._id);
       added = true;
-
     } else {
       // S’il y est déjà → on le retire
       user.readBooks.splice(index, 1);
@@ -103,7 +101,6 @@ router.put("/toggleReadBook/:token/:bookId", async (req, res) => {
 
     // On sauvegarde les changements dans MongoDB
     await user.save();
-
     // On renvoie une réponse claire au front-end
     res.json({ result: true, added });
   } catch (error) {
@@ -145,21 +142,18 @@ router.put("/toggleToRead/:token/:bookId", async (req, res) => {
 
     // Vérifie si le livre est déjà dans la liste "à lire"
     const index = user.toRead.findIndex((id) => id.toString() === req.params.bookId);
-    let added;
 
-    if (index === -1) {
-      // Le livre n’est pas encore dans la liste → on l’ajoute
+    let added;
+    if (index === -1) { // Le livre n’est pas encore dans la liste → on l’ajoute
       user.toRead.push(book._id);
       added = true;
-    } else {
-      // Le livre y est déjà → on le retire
+    } else { // Le livre y est déjà → on le retire
       user.toRead.splice(index, 1);
       added = false;
     }
 
     // On sauvegarde les modifications
     await user.save();
-
     // On renvoie la confirmation au front
     res.json({ result: true, added });
   } catch (error) {
@@ -179,33 +173,6 @@ router.get("/:token/toRead", async (req, res) => {
     res.json({ result: true, toRead: user.toRead });
   } catch (error) {
     console.error("Erreur get toRead:", error);
-    res.status(500).json({ result: false, error: "Erreur serveur" });
-  }
-});
-
-
-
-
-/* --------------------  STATISTIQUES UTILISATEUR -------------------- */
-// GET → /users/:token/stats
-router.get("/:token/stats", async (req, res) => {
-  try {
-    const user = await User.findOne({ token: req.params.token });
-    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
-
-    // Compter le nombre de commentaires écrits par cet utilisateur
-    const commentCount = await Comment.countDocuments({ author: user._id });
-
-    res.json({
-      result: true,
-      stats: {
-        commentCount,
-        fragmentsCurrent: user.fragment,
-        fragmentsTotal: user.totalFragments,
-      },
-    });
-  } catch (error) {
-    console.error("Erreur get stats:", error);
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
 });
@@ -247,5 +214,28 @@ router.get("/:token/status/:bookId", async (req, res) => {
   }
 });
 
+/* --------------------  STATISTIQUES UTILISATEUR -------------------- */
+// GET → /users/:token/stats
+router.get("/:token/stats", async (req, res) => {
+  try {
+    const user = await User.findOne({ token: req.params.token });
+    if (!user) return res.json({ result: false, error: "Utilisateur non trouvé" });
+
+    // Compter le nombre de commentaires écrits par cet utilisateur
+    const commentCount = await Comment.countDocuments({ author: user._id });
+
+    res.json({
+      result: true,
+      stats: {
+        commentCount,
+        fragmentsCurrent: user.fragment,
+        fragmentsTotal: user.totalFragments,
+      },
+    });
+  } catch (error) {
+    console.error("Erreur get stats:", error);
+    res.status(500).json({ result: false, error: "Erreur serveur" });
+  }
+});
 
 module.exports = router;
