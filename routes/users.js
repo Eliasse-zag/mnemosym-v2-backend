@@ -210,8 +210,6 @@ router.get("/:token/stats", async (req, res) => {
   }
 });
 
-
-
 /* -------------------- PROFIL UTILISATEUR -------------------- */
 
 router.get("/:token", async (req, res) => {
