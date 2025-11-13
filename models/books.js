@@ -7,7 +7,7 @@ const bookSchema = mongoose.Schema({
     year: String, // Année de parution du livre
     synopsis: {type: String, trim: true},
     content: {type: String, trim:true}, // Contenu du livre
-    fragmentsRequired: Number,
+    //fragmentsRequired: Number,
     fragmentsCollected: { type: Number, default: 0 },  // Nombre de fragments que possède le livre (par défaut 0)
     comments: [{type: mongoose.Schema.Types.ObjectId, ref:'comments'},],
 },{ timestamps: true });
