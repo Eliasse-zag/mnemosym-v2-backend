@@ -1,16 +1,15 @@
 const mongoose = require('mongoose');
 
 const externalBookSchema = mongoose.Schema({
-    title: String, 
-    gutendexId: Number,
+    title: {type: String, trim: true}, 
+    gutendexId: { type: Number, unique: true, index: true },
     author: String,
     year: String,
     addAt: Date,
-    synopsis: String,
+    synopsis: {type: String, trim: true},
     fragmentsRequired: Number,
-    fragmentsCollected: { type: Number, default: 0 },  // Nombre de fragments que possède le livre (par défaut 0)
-    // comments: [{type: mongoose.Schema.Types.ObjectId, ref:'comments'},]
-});
+    fragmentsCollected: { type: Number, default: 0 }, 
+}, { timestamps: true });
 
 const externalBook = mongoose.model('externalBooks', externalBookSchema);
 
