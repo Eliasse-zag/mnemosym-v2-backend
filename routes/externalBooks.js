@@ -11,7 +11,8 @@ router.post('/addBookByTitle', async(req, res) => {
     const {title} = req.body; 
     if (!title) return res.status(400).json({result: false, error: 'Title is required'}); 
 
-    //Exemple d'URL à exploiter : https://gutendex.com/books?search=dickens%20great
+    // Exemple d'URL Gutendex : https://gutendex.com/books?search=dickens%20great
+    // encodeURIComponent("Les Misérables") → "Les%20Mis%C3%A9rables"
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
     if (response.status !== 200) return res.status(502).json({result: false, error: 'Error fetching data from Gutendex'});
     
@@ -25,7 +26,7 @@ router.post('/addBookByTitle', async(req, res) => {
     
     const bookData = frenchResult;
     const existingBook = await externalBook.findOne({ gutendexId: bookData.id });
-    if (existingBook) return res.json({ result: false, error: 'Book already in database'});
+    if (existingBook) return res.status(200).json({ result: false, message: 'Book already in database'});
     
     // Incrémentation des fragments dans le nouveau livre
     const bookCount = await Book.countDocuments(); // Nb total de livres dans la base de donnée Book
@@ -49,10 +50,18 @@ router.post('/addBookByTitle', async(req, res) => {
 })
 
 // Récupérer tous les livres de la collection Book  
-router.get('/allExternalBooks', (req, res) => {
-    externalBook.find().then((books) => {
-        res.json({result: true, books})
-    });
+router.get('/allExternalBooks', async(req, res) => {
+  try {   
+    const books = await externalBook.find().sort({createdAt : -1})   
+    res.json({result: true, books}) 
+  } catch(error) {
+    console.error("Error GET externalbooks from database:", error)
+    res.status(500).json({result: false, error: "Erreur serveur"})
+  }
+  /*  externalBook.find()
+    .then((books) => res.json({result: true, books}))
+    .catch(error => console.error("Error GET externalbooks from database:", error))
+    */
 });
 
 // Donner un fragment à un livre d'externalBook
@@ -84,6 +93,5 @@ router.post('/giveFragment', async (req, res) => {
     res.status(500).json({ result: false, error: 'Erreur serveur' });
   }
 });
-
 
 module.exports = router;
