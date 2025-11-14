@@ -41,8 +41,8 @@ router.post('/newBook/:gutendexId', async(req, res) => {
     });
 
     // Trouver API avec les meta d'un livre 
-  Book.findOne({gutendexId: gutendexId}).then((data) => {
-    if (data === null ) { // Si le livre n'est pas dans la base de donnée : l'ajouter
+  Book.findOne({gutendexId: gutendexId}).then((book) => {
+    if (book === null ) { // Si le livre n'est pas dans la base de donnée : l'ajouter
         const newBook = new Book({
             title: bookData.title, 
             author: bookData.authors[0].name,
@@ -50,7 +50,7 @@ router.post('/newBook/:gutendexId', async(req, res) => {
             content: cleanHtml, 
             addAt: new Date(),
         }); 
-        newBook.save().then(data => res.json({result: true, data}))
+        newBook.save().then(newBook => res.json({result: true, newBook}))
     } else { // Si le livre est dans la base de données => error
         res.json({result: false, error: 'Book already in database'})
     }
@@ -110,8 +110,8 @@ router.post('/addBookByTitle', async(req, res) => {
     });
 
     // Trouver API avec les meta d'un livre
-    Book.findOne({gutendexId: bookData.id}).then((data) => {
-        if (data === null) { // Si le livre n'est pas dans la base de données => l'ajouter
+    Book.findOne({gutendexId: bookData.id}).then((book) => {
+        if (book === null) { // Si le livre n'est pas dans la base de données => l'ajouter
           const newBook = new Book({
                 gutendexId: bookData.id,
                 title: bookData.title, 
@@ -120,7 +120,7 @@ router.post('/addBookByTitle', async(req, res) => {
                 content: cleanHtml,
                 addAt: new Date(),
             })
-            newBook.save().then(data => res.json({result: true, data}))
+            newBook.save().then(newBook => res.json({result: true, newBook}))
         } else { // Si le livre est dans la base de données => error
         res.json({result: false, error: 'Book already in database'})
     }
@@ -201,7 +201,7 @@ router.post('/newBookFromExternalBooks/:gutendexId', async(req, res) => {
       const savedBook = await newBook.save();
       const deleteExternalBook = await externalBook.deleteOne({gutendexId});
 
-      return res.json({result: true, data: savedBook})
+      return res.json({result: true, savedBook})
     }
   } catch(error) {
     console.error('Error POST new book in database books:', error)
