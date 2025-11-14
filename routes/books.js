@@ -90,7 +90,7 @@ router.post('/addBookByTitle', async(req, res) => {
     //const textPlainUrl = await fetch(`https://www.gutenberg.org/ebooks/${bookData.id}.txt.utf-8`)
     const textContent = await textUrl.text(); // conversion au format text
 
-    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
+    const cleanedRaw = textContent.replace(/\r?\n|\r/g, "<br>");
     const cleanHtml = sanitizeHTML(cleanedRaw, {
         allowedTags: [
       "p", "h1", "h2", "h3", "h4", "h5",
@@ -156,51 +156,57 @@ router.get('/:id', async(req, res) => {
 // Ajouter un livre de la collection externalBook à la collection Book 
 router.post('/newBookFromExternalBooks/:gutendexId', async(req, res) => {
   const gutendexId = req.params.gutendexId
-  const foundBook = await externalBook.findOne({gutendexId})
-  //console.log(foundBook) // Test 4650 : Ok pour Candide
- // console.log("reçu", foundBook.fragmentsRequired, "requis", foundBook.fragmentsCollected)
 
-  if (foundBook.fragmentsRequired === foundBook.fragmentsCollected) {
+  try {
+    const foundBook = await externalBook.findOne({gutendexId})
+    if(!foundBook) return res.status(404).json({result:false, error: "Book not found"})
+    // console.log("reçu", foundBook.fragmentsRequired, "requis", foundBook.fragmentsCollected)
 
-    // Récupération du texte à partir de l'URL
-    const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du texte en HTML
-    const textContent = await textUrl.text(); // conversion au format text 
+    // Vérifier que le livre ne figure pas dans la DB books avant de faire appel à l'API Gutendex
+    const existingBook = await Book.findOne({gutendexId})
+    if (existingBook) return res.json({result: false, error: "Book already in database"})
 
-    // Nettoyage du HTML avant stockage dans la BDD
-    const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
-    const cleanHtml = sanitizeHTML(cleanedRaw, {
-        allowedTags: [
-      "p", "h1", "h2", "h3", "h4", "h5",
-      "em", "strong", "blockquote",
-      "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
-    ],
-    allowedAttributes: {
-      a: ["href", "name", "target"],
-      "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
-    },
-    // Protocoles autorisés dans les liens
-    allowedSchemes: ["http", "https", "mailto"],
-    // Interdit tous les styles inline
-    allowedStyles: {},
-    });
+    if (foundBook.fragmentsRequired === foundBook.fragmentsCollected) {
+      // Récupération du texte à partir de l'URL
+      const textUrl = await fetch(`https://www.gutenberg.org/ebooks/${gutendexId}.html.images`); // récupération du texte en HTML
+      const textContent = await textUrl.text(); // conversion au format text 
+  
+      // Nettoyage du HTML avant stockage dans la BDD
+      const cleanedRaw = textContent.replace(/\r?\n|\r/g, " ");
+      const cleanHtml = sanitizeHTML(cleanedRaw, {
+          allowedTags: [
+        "p", "h1", "h2", "h3", "h4", "h5",
+        "em", "strong", "blockquote",
+        "ul", "ol", "li", "a", "hr", "br", "span", "div", "table", "tr", "td", "th", "tbody", "thead", "tfoot"
+      ],
+      allowedAttributes: {
+        a: ["href", "name", "target"],
+        "*": ["class", "id"] // pour conserver des classes utiles à la mise en forme
+      },
+      // Protocoles autorisés dans les liens
+      allowedSchemes: ["http", "https", "mailto"],
+      // Interdit tous les styles inline
+      allowedStyles: {},
+      });
 
-    const newBook = new Book({
-        gutendexId: foundBook.gutendexId,
-        title: foundBook.title,
-        author: foundBook.author, 
-        synopsis: foundBook.synopsis,
-        content: cleanHtml,
-        fragmentsCollected: foundBook.fragmentsCollected,
-    })
+      const newBook = new Book({
+          gutendexId: foundBook.gutendexId,
+          title: foundBook.title,
+          author: foundBook.author, 
+          synopsis: foundBook.synopsis,
+          content: cleanHtml,
+          fragmentsCollected: foundBook.fragmentsCollected,
+      })
+  
+      const savedBook = await newBook.save();
+      const deleteExternalBook = await externalBook.deleteOne({gutendexId});
 
-    const savedBook = await newBook.save();
-    //return res.json({ result: true, data: savedBook });
-    const deleteExternalBook = await externalBook.deleteOne({gutendexId})
-    return res.json({result: true, data: savedBook})
-
+      return res.json({result: true, data: savedBook})
+    }
+  } catch(error) {
+    console.error('Error POST new book in database books:', error)
+    res.status(500).json({result: false, error: "Erreur lors de l'ajout du livre"})
   }
-
 })
-
 
 module.exports = router;
