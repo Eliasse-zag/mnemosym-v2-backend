@@ -58,10 +58,6 @@ router.get('/allExternalBooks', async(req, res) => {
     console.error("Error GET externalbooks from database:", error)
     res.status(500).json({result: false, error: "Erreur serveur"})
   }
-  /*  externalBook.find()
-    .then((books) => res.json({result: true, books}))
-    .catch(error => console.error("Error GET externalbooks from database:", error))
-    */
 });
 
 // Donner un fragment à un livre d'externalBook

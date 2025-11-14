@@ -133,20 +133,24 @@ router.get('/allBooks', async (req, res) => {
     const books = await Book.find().sort({ createdAt: -1 });
     res.json({ result: true, books });
   } catch (error) {
-    res.json({ result: false, error: "Erreur récupération des livres" });
+    console.error("Error GET books from database:", error);
+    res.status(500).json({ result: false, error: "Erreur récupération des livres" });
   }
 });
 
 // Récupérer un livre spécifique par son ID MongoDB
-router.get('/:id', (req, res) => {
-    const bookId = req.params.id;
-    Book.findById(bookId).then((book) => {
-        if (book) {
-            res.json({result: true, book});
-        } else {
-            res.json({result: false, error: 'Book not found'});
-        }
-    });   
+router.get('/:id', async(req, res) => {
+    try {
+      const bookId = req.params.id
+      const book = await Book.findById(bookId)
+
+      if (!book) return res.status(404).json({result: false, error:'Book not found'})
+
+      res.json({result:true, book})
+    } catch(error) {
+      console.error("Error GET book from database:", error);
+      res.status(500).json({ result: false, error: `Erreur récupération du livre` });
+    }
 })  
 
 // Ajouter un livre de la collection externalBook à la collection Book 
@@ -198,54 +202,5 @@ router.post('/newBookFromExternalBooks/:gutendexId', async(req, res) => {
 
 })
 
-// ----------- Ajouter un fragment au livre ----------- //
-/*
-router.post('/giveFragment', async (req, res) => {
-  const { token, bookId } = req.body;
-  if (!token || !bookId) {   // Vérifie que les deux champs sont bien présents
-    return res.status(400).json({ result: false, error: 'Champs manquants' });
-  }
-  try {
-    const user = await User.findOne({ token });   // Recherche de l'utilisateur via son token
-    const book = await Book.findById(bookId);
-    if (!user || !book) {  // Vérifie que l'utilisateur et le livre existent
-      return res.status(404).json({ result: false, error: 'Utilisateur ou livre introuvable' });
-    }
-    if (user.fragment < 1) {  // Vérifie que l'utilisateur a au moins 1 fragment à donner
-      return res.status(403).json({ result: false, error: 'Fragments insuffisants' });
-    }
-    user.fragment -= 1;  // Décrémente les fragments de l'utilisateur
-    book.fragmentsCollected += 1;  // Incrémente les fragments collectés pour le livre
-    await user.save();      // Sauvegarde les modifications en base de données
-    await book.save();
-    res.json({     // Réponse JSON avec les nouvelles valeurs mises à jour
-      result: true,
-      message: 'Fragment donné avec succès',
-      userFragments: user.fragment,
-      bookFragments: book.fragmentsCollected
-    });
-  } catch (err) {
-    res.status(500).json({ result: false, error: 'Erreur serveur' });
-  }
-});
-
-// Ajouter un livre en fonction du nombre de fragment requis
-router.post('/addBookByTitles', async (req, res) => {
-  const { title } = req.body;
-
-  const bookCount = await Book.countDocuments(); // nombre total de livres
-  const fragmentsRequired = 10 + bookCount;
-
-  const newBook = new Book({
-    title,
-    fragmentsRequired,
-    fragmentsCollected: 0,
-  });
-
-  await newBook.save();
-  res.json({ result: true, book: newBook });
-});
-
-*/
 
 module.exports = router;
