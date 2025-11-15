@@ -14,11 +14,11 @@ var externalBooksRouter = require("./routes/externalBooks");
 var app = express();
 
 const cors = require("cors");
-app.use(cors({
+app.use(cors(/*{
   //origin: 'http://localhost:3001', // frontend Next.js
-  origin: ["http://localhost:3000","http://localhost:3001", "https://mnemosym-v2-frontend.vercel.app"],
-  credentials: true
-}));
+  //origin: ["http://localhost:3000","http://localhost:3001", "https://mnemosym-v2-frontend.vercel.app"],
+  //credentials: true
+}*/));
 
 
 app.use(logger("dev"));
