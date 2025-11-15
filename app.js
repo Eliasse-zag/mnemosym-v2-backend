@@ -15,7 +15,8 @@ var app = express();
 
 const cors = require("cors");
 app.use(cors({
-  origin: 'http://localhost:3001', // frontend Next.js
+  //origin: 'http://localhost:3001', // frontend Next.js
+  origin: ["http://localhost:3000","http://localhost:3001", "https://mnemosym-v2-frontend.vercel.app"],
   credentials: true
 }));
 
