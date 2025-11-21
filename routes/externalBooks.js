@@ -14,6 +14,7 @@ router.post('/addBookByTitle', async(req, res) => {
     // Exemple d'URL Gutendex : https://gutendex.com/books?search=dickens%20great
     // encodeURIComponent("Les Misérables") → "Les%20Mis%C3%A9rables"
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
+    // if (response.status !== 200)
     if (!response || !response.ok) return res.status(502).json({result: false, error: 'Error fetching data from Gutendex'});
     
     const searchData = await response.json(); // Résultat de la recherche
