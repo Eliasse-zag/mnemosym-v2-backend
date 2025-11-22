@@ -6,7 +6,6 @@ const Book = require('../models/books');
 
 // Ajouter un livre externe à la collecte via son titre (recherche sur Gutendex)
 router.post('/addBookByTitle', async(req, res) => {
-
   try {
     const {title} = req.body; 
     if (!title) return res.status(400).json({result: false, error: 'Title is required'}); 
@@ -14,10 +13,9 @@ router.post('/addBookByTitle', async(req, res) => {
     // Exemple d'URL Gutendex : https://gutendex.com/books?search=dickens%20great
     // encodeURIComponent("Les Misérables") → "Les%20Mis%C3%A9rables"
     const response = await fetch(`https://gutendex.com/books?search=${encodeURIComponent(title)}`);
-    // if (response.status !== 200)
     if (!response || !response.ok) return res.status(502).json({result: false, error: 'Error fetching data from Gutendex'});
     
-    const searchData = await response.json(); // Résultat de la recherche
+    const searchData = await response.json(); 
     if (!searchData?.results?.length) return res.json({result: false, error: 'No book found with this title'});
     
     // Plusieurs oeuvres peuvent être trouvées, on ne conserve qu'une seule version
@@ -30,7 +28,7 @@ router.post('/addBookByTitle', async(req, res) => {
     if (existingBook) return res.status(200).json({ result: false, message: 'Book already in database'});
     
     // Incrémentation des fragments dans le nouveau livre
-    const bookCount = await Book.countDocuments(); // Nb total de livres dans la base de donnée Book
+    const bookCount = await Book.countDocuments(); 
     const fragmentsRequired = 1 + bookCount; // Pour débuter, le livre requiert 1 fragment de + que le nb de la db Book
 
     const newBook = new externalBook({
@@ -41,7 +39,6 @@ router.post('/addBookByTitle', async(req, res) => {
         fragmentsRequired,
         fragmentsCollected: 0,
     })
-
     const savedBook = await newBook.save();
     return res.json({ result: true, data: savedBook });
     
@@ -64,13 +61,13 @@ router.get('/allExternalBooks', async(req, res) => {
 // Donner un fragment à un livre d'externalBook
 router.post('/giveFragment', async (req, res) => {
   const { token, bookId } = req.body;
-  if (!token || !bookId) {   // Vérifie que les deux champs sont bien présents
+  if (!token || !bookId) {   
     return res.status(400).json({ result: false, error: 'Champs manquants' });
   }
   try {
-    const user = await User.findOne({ token });   // Recherche de l'utilisateur via son token
+    const user = await User.findOne({ token });   
     const book = await externalBook.findById(bookId);
-    if (!user || !book) {  // Vérifie que l'utilisateur et le livre existent
+    if (!user || !book) {  
       return res.status(404).json({ result: false, error: 'Utilisateur ou livre introuvable' });
     }
     if (user.fragment < 1) {  // Vérifie que l'utilisateur a au moins 1 fragment à donner

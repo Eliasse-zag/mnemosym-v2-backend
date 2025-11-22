@@ -99,12 +99,9 @@ router.put("/toggleReadBook/:token/:bookId", async (req, res) => {
       added = false;
     }
 
-    // On sauvegarde les changements dans MongoDB
     await user.save();
-    // On renvoie une réponse claire au front-end
     res.json({ result: true, added });
   } catch (error) {
-    // Gestion d’erreur serveur
     console.error("Erreur toggleReadBook:", error);
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
@@ -152,16 +149,13 @@ router.put("/toggleToRead/:token/:bookId", async (req, res) => {
       added = false;
     }
 
-    // On sauvegarde les modifications
     await user.save();
-    // On renvoie la confirmation au front
     res.json({ result: true, added });
   } catch (error) {
     console.error("Erreur toggleToRead:", error);
     res.status(500).json({ result: false, error: "Erreur serveur" });
   }
 });
-
 
 // Récupérer la liste des livres à lire
 router.get("/:token/toRead", async (req, res) => {
@@ -181,7 +175,6 @@ router.get("/:token/toRead", async (req, res) => {
 
 router.get("/:token", async (req, res) => {
   try {
-    // On cherche l’utilisateur par son token pour afficher ses infos de profil
     const user = await User.findOne({ token: req.params.token });
     if (!user)
       return res.json({ result: false, error: "Utilisateur non trouvé" });

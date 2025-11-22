@@ -5,7 +5,6 @@ const externalBookSchema = mongoose.Schema({
     gutendexId: { type: Number, unique: true, index: true },
     author: String,
     year: String,
-    addAt: Date,
     synopsis: {type: String, trim: true},
     fragmentsRequired: Number,
     fragmentsCollected: { type: Number, default: 0 }, 

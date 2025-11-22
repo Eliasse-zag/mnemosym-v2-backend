@@ -1,14 +1,10 @@
 const express = require("express");
 const router = express.Router(); 
-
-
-const Comment = require("../models/comments"); // Modèle des commentaires
-const Book = require("../models/books");       // Modèle des livres
-const User = require("../models/users"); // Modèle des utilisateurs
-
+const Comment = require("../models/comments"); 
+const Book = require("../models/books");      
+const User = require("../models/users"); 
 
 // RÉCUPÉRER TOUS LES COMMENTAIRES D’UN LIVRE
-// Méthode GET → /comments/:bookId
 router.get("/:bookId", async (req, res) => {
   try {
     // On récupère tous les commentaires liés au livre dont l’ID est passé en paramètre
@@ -18,23 +14,17 @@ router.get("/:bookId", async (req, res) => {
 
     // Si tout va bien, on renvoie la liste des commentaires
     res.json({ result: true, comments });
-  } catch (error) {
-    // En cas d’erreur serveur
+  } catch (error) { // En cas d’erreur serveur
     console.error(error);
     res.status(500).json({ result: false, error: "Erreur serveur." });
   }
 });
 
-
-
 // PUBLIER UN NOUVEAU COMMENTAIRE
-// Méthode POST → /comments/:bookId
 router.post("/:bookId", async (req, res) => {
   try {
     // On récupère le token utilisateur et le contenu du commentaire dans le corps de la requête
     const { token, content } = req.body;
-
-    // Vérifie que les champs nécessaires sont bien fournis
     if (!token || !content) {
       return res.json({ result: false, error: "Champs manquants." });
     }
@@ -57,28 +47,25 @@ router.post("/:bookId", async (req, res) => {
 
     // Enregistrement du commentaire en base
     const savedComment = await newComment.save();
-
     // On remplit les infos de l’auteur (pour afficher son username)
     const populatedComment = await savedComment.populate("author", "username");
 
-       // --- Vérification de la longueur du commentaire ---
-   const MIN_LEN = 1000;// le commentaire doit faire au moins 2000 caractères
+    // --- Vérification de la longueur du commentaire ---
+    const MIN_LEN = 1000;// le commentaire doit faire au moins 2000 caractères
     const actualLen = content.trim().length; //On mesure la longueur réelle du commentaire en supprimant les espaces au début et à la fin
     let fragmentEarned = false;
 
     if (actualLen >= MIN_LEN) {//Si le commentaire dépasse ou égale les 2000 caractères :
-        //  On vérifie si l’utilisateur a déjà été récompensé pour CE livre précis
-  // On compare chaque ID de "rewardedBooks" (livres déjà récompensés)
-  // avec l’ID du livre actuel (book._id)
-      const alreadyRewarded = user.rewardedBooks.some(
-        (b) => b.toString() === book._id.toString()
-      );
+    // On vérifie si l’utilisateur a déjà été récompensé pour CE livre précis
+    // On compare chaque ID de "rewardedBooks" (livres déjà récompensés)
+    // avec l’ID du livre actuel (book._id)
+      const alreadyRewarded = user.rewardedBooks.some((b) => b.toString() === book._id.toString());
 
       if (!alreadyRewarded) {  //  Si l’utilisateur N’A PAS encore reçu de fragment pour ce livre :
         user.fragment += 1;
         user.totalFragments += 1;
         user.rewardedBooks.push(book._id); // on marque ce livre comme "récompensé"
-          newComment.gaveFragment = true;
+        newComment.gaveFragment = true;
         fragmentEarned = true;
         await user.save();}
     }
@@ -86,7 +73,7 @@ router.post("/:bookId", async (req, res) => {
     // Ajout du commentaire dans la liste des commentaires du livre
     book.comments.push(savedComment._id);
     await book.save();
-await newComment.save();
+    await newComment.save();
     // Réponse au frontend avec le nouveau commentaire
     res.json({ result: true, comment: populatedComment, fragmentEarned })
   } catch (error) {
@@ -102,15 +89,12 @@ router.put("/likeComment", async (req, res) => {
   try {
     // On récupère le token utilisateur et l’ID du commentaire à liker
     const { token, commentId } = req.body;
-
     // Vérifie la présence des deux champs obligatoires
-    if (!token || !commentId)
-      return res.json({ result: false, error: "Champs manquants." });
+    if (!token || !commentId) return res.json({ result: false, error: "Champs manquants." });
 
     // Recherche du commentaire concerné
     const comment = await Comment.findById(commentId);
-    if (!comment)
-      return res.json({ result: false, error: "Commentaire introuvable." });
+    if (!comment) return res.json({ result: false, error: "Commentaire introuvable." });
 
     // Vérifie si le token est déjà présent dans le tableau "isLike"
     const hasLiked = comment.isLike.includes(token);
